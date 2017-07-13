@@ -18,8 +18,11 @@ use chrono::offset::Utc;
 use chrono::DateTime;
 use crypto::sha3::Sha3;
 use crypto::digest::Digest;
+use chrono::TimeZone;
 
-pub type Hash = [u8; 512];
+const HASH_LENGTH: usize = 512;
+
+pub type Hash = [u8; HASH_LENGTH];
 
 pub struct Block {
     index: u64,
@@ -30,6 +33,20 @@ pub struct Block {
 }
 
 impl Block {
+    pub fn genesis() -> Block {
+        let mut gnew = Self::new(
+            0,
+            [0; HASH_LENGTH],
+            Utc.timestamp(0, 0),
+            Vec::new(),
+            [0; HASH_LENGTH],
+        );
+
+        gnew.hash = gnew.hash();
+
+        gnew
+    }
+
     /// Constructs a new `Block`
     pub fn new(
         index: u64,
@@ -74,7 +91,7 @@ impl Block {
 
         let calced_hash = self.hash();
 
-        while count < 512 {
+        while count < HASH_LENGTH {
             res |= calced_hash[count] ^ self.hash[count];
 
             count += 1;
@@ -92,16 +109,10 @@ pub fn calculate_hash(
 ) -> Hash {
     let mut hasher = Sha3::sha3_512();
 
-    let input_string = format!(
-        "{}{:?}{}{:?}",
-        index,
-        previous_hash.to_vec(),
-        timestamp,
-        data
-    );
+    let input_string = format!("{}{:?}{}{:?}", index, &previous_hash[..], timestamp, data);
 
     hasher.input(input_string.as_bytes());
-    let mut hash: Hash = [0; 512];
+    let mut hash: Hash = [0; HASH_LENGTH];
 
     hasher.result(&mut hash);
 

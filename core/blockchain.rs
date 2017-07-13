@@ -14,8 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate chrono;
-extern crate crypto;
+use block::Block;
 
-pub mod block;
-pub mod blockchain;
+/// A representation of the blockchain
+pub struct Blockchain {
+    chain: Vec<Block>,
+}
+
+impl Blockchain {
+    pub fn initial() -> Blockchain {
+        let initial_chain = vec![Block::genesis()];
+
+        Blockchain { chain: initial_chain }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        unimplemented!()
+    }
+
+    pub fn is_block_valid(&self, block: &Block) -> bool {
+        unimplemented!()
+    }
+
+    pub fn add_block(&mut self, block: Block) {
+        unimplemented!()
+    }
+}
