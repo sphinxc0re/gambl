@@ -15,32 +15,27 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use chrono::offset::Utc;
+use std::path::PathBuf;
 use chrono::DateTime;
 use crypto::sha3::Sha3;
 use crypto::digest::Digest;
 use chrono::TimeZone;
+use errors::*;
+use types::*;
+use util;
 
-const HASH_LENGTH: usize = 512;
-
-pub type Hash = [u8; HASH_LENGTH];
-
+#[derive(Serialize, Deserialize, PartialEq)]
 pub struct Block {
-    index: u64,
-    previous_hash: Hash,
-    timestamp: DateTime<Utc>,
-    data: Vec<u8>,
-    hash: Hash,
+    pub index: u64,
+    pub previous_hash: Hash,
+    pub timestamp: DateTime<Utc>,
+    pub data: Vec<u8>,
+    pub hash: Hash,
 }
 
 impl Block {
     pub fn genesis() -> Block {
-        let mut gnew = Self::new(
-            0,
-            [0; HASH_LENGTH],
-            Utc.timestamp(0, 0),
-            Vec::new(),
-            [0; HASH_LENGTH],
-        );
+        let mut gnew = Self::new(0, Hash::new(), Utc.timestamp(0, 0), Vec::new(), Hash::new());
 
         gnew.hash = gnew.hash();
 
@@ -84,24 +79,46 @@ impl Block {
     }
 
     /// Checks whether the internal integrity of the block is given
-    fn is_valid(&self) -> bool {
-        let mut count = 0;
-
-        let mut res = 0;
-
+    pub fn is_valid(&self) -> bool {
         let calced_hash = self.hash();
 
-        while count < HASH_LENGTH {
-            res |= calced_hash[count] ^ self.hash[count];
+        calced_hash == self.hash
+    }
 
-            count += 1;
-        }
+    pub fn existing_from_pointer_file(pointer_file_name: &PathBuf) -> Result<Block> {
+        let ptr = util::deserialize(pointer_file_name)?;
 
-        res == 0
+        Self::existing_from_pointer(&ptr)
+    }
+
+    pub fn existing_from_pointer(pointer: &Hash) -> Result<Block> {
+        unimplemented!()
+    }
+
+    pub fn path_buf_from_pointer(pointer: &Hash) -> PathBuf {
+        let chars: Vec<_> = pointer.clone().chars().collect();
+        let first = format!("{}{}", chars[0], chars[1]);
+        let second = format!("{}{}", chars[2], chars[3]);
+        let third = format!("{}{}", chars[4], chars[5]);
+
+        let mut path = PathBuf::new();
+
+        path
+    }
+
+    /// Loads a block from a file
+    pub fn from_file(file_name: &PathBuf) -> Result<Block> {
+        util::deserialize(file_name)
+    }
+
+
+    /// Saves a block to a file
+    pub fn to_file(&self, file_name: &PathBuf) -> Result<()> {
+        util::serialize(file_name, self)
     }
 }
 
-pub fn calculate_hash(
+fn calculate_hash(
     index: &u64,
     previous_hash: &Hash,
     timestamp: &DateTime<Utc>,
@@ -109,12 +126,9 @@ pub fn calculate_hash(
 ) -> Hash {
     let mut hasher = Sha3::sha3_512();
 
-    let input_string = format!("{}{:?}{}{:?}", index, &previous_hash[..], timestamp, data);
+    let input_string = format!("{}{}{}{:?}", index, previous_hash, timestamp, data);
 
-    hasher.input(input_string.as_bytes());
-    let mut hash: Hash = [0; HASH_LENGTH];
+    hasher.input_str(input_string.as_str());
 
-    hasher.result(&mut hash);
-
-    hash
+    hasher.result_str().to_owned()
 }

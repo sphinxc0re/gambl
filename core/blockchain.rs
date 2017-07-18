@@ -15,28 +15,52 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use block::Block;
+use std::path::{Path, PathBuf};
+use errors::*;
+use types::*;
+use std::fs::File;
+use std::io::Read;
+use rmp_serde::Deserializer;
+use serde::Deserialize;
+use util;
+
+const HEAD_FILE_NAME: &str = "HEAD";
 
 /// A representation of the blockchain
 pub struct Blockchain {
-    chain: Vec<Block>,
+    block_dir: PathBuf,
+    current_block_hash: Hash,
 }
 
 impl Blockchain {
-    pub fn initial() -> Blockchain {
-        let initial_chain = vec![Block::genesis()];
+    /// Adds a block to the chain
+    pub fn add_block(&mut self, block: Block) {}
 
-        Blockchain { chain: initial_chain }
+    fn is_block_valid_next(&self, block: &Block) -> Result<bool> {
+        let head = self.head_block()?;
+
+
+
+        Ok(true)
+    }
+
+    /// Returns the head block
+    fn head_block(&self) -> Result<Block> {
+        Block::from_file(&self.block_dir.join(HEAD_FILE_NAME))
+    }
+
+    pub fn new(block_dir: PathBuf) -> Result<Blockchain> {
+        let blck_dir = block_dir.join(HEAD_FILE_NAME);
+
+        let de = util::deserialize(&blck_dir)?;
+
+        Ok(Blockchain {
+            block_dir: blck_dir,
+            current_block_hash: de,
+        })
     }
 
     pub fn is_valid(&self) -> bool {
-        unimplemented!()
-    }
-
-    pub fn is_block_valid(&self, block: &Block) -> bool {
-        unimplemented!()
-    }
-
-    pub fn add_block(&mut self, block: Block) {
         unimplemented!()
     }
 }

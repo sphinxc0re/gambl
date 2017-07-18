@@ -14,3 +14,7 @@ path = "src/main.rs"
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 rust-crypto = "0.2.36"
+serde = "1.0.10"
+serde_derive = "1.0.10"
+error-chain = "0.10.0"
+rmp-serde = "0.13.3"

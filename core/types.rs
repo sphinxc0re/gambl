@@ -14,17 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate chrono;
-extern crate crypto;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-#[macro_use]
-extern crate error_chain;
-extern crate rmp_serde;
-
-pub mod block;
-pub mod blockchain;
-pub mod errors;
-pub mod types;
-pub mod util;
+pub type Hash = String;
