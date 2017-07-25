@@ -85,34 +85,13 @@ impl Block {
         calced_hash == self.hash
     }
 
-    pub fn existing_from_pointer_file(pointer_file_name: &PathBuf) -> Result<Block> {
-        let ptr = util::deserialize(pointer_file_name)?;
-
-        Self::existing_from_pointer(&ptr)
-    }
-
-    pub fn existing_from_pointer(pointer: &Hash) -> Result<Block> {
-        unimplemented!()
-    }
-
-    pub fn path_buf_from_pointer(pointer: &Hash) -> PathBuf {
-        let chars: Vec<_> = pointer.clone().chars().collect();
-        let first = format!("{}{}", chars[0], chars[1]);
-        let second = format!("{}{}", chars[2], chars[3]);
-        let third = format!("{}{}", chars[4], chars[5]);
-
-        let mut path = PathBuf::new();
-
-        path
-    }
-
     /// Loads a block from a file
     pub fn from_file(file_name: &PathBuf) -> Result<Block> {
         util::deserialize(file_name)
     }
 
 
-    /// Saves a block to a file
+    /// Saves the block to a file
     pub fn to_file(&self, file_name: &PathBuf) -> Result<()> {
         util::serialize(file_name, self)
     }
