@@ -78,7 +78,13 @@ impl Blockchain {
         self.block_dir.join(first).join(second).join(third)
     }
 
-    pub fn new(block_dir: PathBuf) -> Blockchain {
-        Blockchain { block_dir: block_dir }
+    pub fn init(block_dir: PathBuf) -> Result<Blockchain> {
+        let mut chain = Blockchain { block_dir: block_dir };
+
+        if !chain.block_dir.join(HEAD_FILE_NAME).exists() {
+            chain.add_block(Block::genesis())?;
+        }
+
+        Ok(chain)
     }
 }
