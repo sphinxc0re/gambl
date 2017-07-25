@@ -22,6 +22,7 @@ use util;
 use std::fs;
 
 const HEAD_FILE_NAME: &str = "HEAD";
+const BLOCK_DIR_NAME: &str = "blocks";
 
 /// A representation of the blockchain
 pub struct Blockchain {
@@ -31,7 +32,7 @@ pub struct Blockchain {
 impl Blockchain {
     /// Adds a block to the chain
     pub fn add_block(&mut self, block: Block) -> Result<()> {
-        fs::create_dir(self.index_path_from_pointer(&block.hash))
+        fs::create_dir_all(self.index_path_from_pointer(&block.hash))
             .chain_err(|| "unable to create directory structure")?;
 
         block.to_file(
@@ -39,6 +40,16 @@ impl Blockchain {
         )?;
 
         self.set_head(&block.hash)
+    }
+
+    pub fn new_block(&mut self, data: Vec<u8>) -> Result<()> {
+        let head = self.head_block()?;
+
+        self.add_block(
+            Block::create_now(head.index + 1, head.hash, data),
+        )?;
+
+        Ok(())
     }
 
     pub fn is_block_valid_next(&self, block: &Block) -> Result<bool> {
@@ -71,11 +82,14 @@ impl Blockchain {
 
     fn index_path_from_pointer(&self, pointer: &Hash) -> PathBuf {
         let chars: Vec<_> = pointer.clone().chars().collect();
-        let first = format!("{}{}", chars[0], chars[1]);
-        let second = format!("{}{}", chars[2], chars[3]);
-        let third = format!("{}{}", chars[4], chars[5]);
 
-        self.block_dir.join(first).join(second).join(third)
+        let mut path_buf = PathBuf::from(BLOCK_DIR_NAME);
+
+        for i in 0..8 {
+            path_buf = path_buf.join(format!("{}{}", chars[i * 2], chars[(i * 2) + 1]));
+        }
+
+        self.block_dir.join(path_buf)
     }
 
     pub fn init(block_dir: PathBuf) -> Result<Blockchain> {

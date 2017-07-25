@@ -27,10 +27,12 @@ where
 {
     let mut file = File::open(file_path).chain_err(|| "unable to open file")?;
 
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).chain_err(|| "")?;
+    let mut contents = Vec::new();
+    file.read_to_end(&mut contents).chain_err(
+        || "failed to read contents from file",
+    )?;
 
-    let mut de = Deserializer::new(contents.as_bytes());
+    let mut de = Deserializer::new(&contents[..]);
 
     Deserialize::deserialize(&mut de).chain_err(|| "failed to deserialize block")
 }
@@ -44,6 +46,10 @@ pub fn serialize<T: Serialize>(file_path: &PathBuf, obj: &T) -> Result<()> {
 
     obj.serialize(&mut Serializer::new(&mut buf)).chain_err(
         || "failed to serialize block",
+    )?;
+
+    file.write_all(&buf[..]).chain_err(
+        || "failed to write data",
     )?;
 
     file.flush().chain_err(|| "failed to flush data")?;
