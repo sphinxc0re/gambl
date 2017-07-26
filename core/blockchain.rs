@@ -22,21 +22,20 @@ use util;
 use std::fs;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
+use std::marker;
 
 const HEAD_FILE_NAME: &str = "HEAD";
 const BLOCK_DIR_NAME: &str = "blocks";
 
 /// A representation of the blockchain
-pub struct Blockchain {
+pub struct Blockchain<T> {
     block_dir: PathBuf,
+    data_type: marker::PhantomData<T>,
 }
 
-impl Blockchain {
+impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     /// Adds a block to the chain
-    pub fn add_block<'a, T: Debug + Default + Serialize + Deserialize<'a>>(
-        &mut self,
-        block: Block<T>,
-    ) -> Result<()> {
+    pub fn add_block(&mut self, block: Block<T>) -> Result<()> {
         fs::create_dir_all(self.index_path_from_pointer(&block.hash))
             .chain_err(|| "unable to create directory structure")?;
 
@@ -47,10 +46,7 @@ impl Blockchain {
         self.set_head(&block.hash)
     }
 
-    pub fn new_block<'a, T: Debug + Default + Serialize + Deserialize<'a>>(
-        &mut self,
-        data: T,
-    ) -> Result<()> {
+    pub fn new_block(&mut self, data: T) -> Result<()> {
         let head: Block<T> = self.head_block()?;
 
         self.add_block(
@@ -60,10 +56,7 @@ impl Blockchain {
         Ok(())
     }
 
-    pub fn is_block_valid_next<'a, T: Debug + Default + Serialize + Deserialize<'a>>(
-        &self,
-        block: &Block<T>,
-    ) -> Result<bool> {
+    pub fn is_block_valid_next(&self, block: &Block<T>) -> Result<bool> {
         let head: Block<T> = self.head_block()?;
 
         if !block.is_valid() {
@@ -82,9 +75,7 @@ impl Blockchain {
     }
 
     /// Returns the head block
-    pub fn head_block<'a, T: Debug + Default + Serialize + Deserialize<'a>>(
-        &self,
-    ) -> Result<Block<T>> {
+    pub fn head_block(&self) -> Result<Block<T>> {
         let ptr: String = util::deserialize(&self.block_dir.join(HEAD_FILE_NAME))?;
         Block::from_file(&self.path_buf_from_block_pointer(&ptr))
     }
@@ -105,13 +96,14 @@ impl Blockchain {
         self.block_dir.join(path_buf)
     }
 
-    pub fn init<'a, T: Debug + Default + Serialize + Deserialize<'a>>(
-        block_dir: PathBuf,
-    ) -> Result<Blockchain> {
-        let mut chain = Blockchain { block_dir: block_dir };
+    pub fn init(block_dir: PathBuf) -> Result<Blockchain<T>> {
+        let mut chain = Blockchain {
+            block_dir: block_dir,
+            data_type: marker::PhantomData::<T>,
+        };
 
         if !chain.block_dir.join(HEAD_FILE_NAME).exists() {
-            chain.add_block::<T>(Block::genesis())?;
+            chain.add_block(Block::genesis())?;
         }
 
         Ok(chain)

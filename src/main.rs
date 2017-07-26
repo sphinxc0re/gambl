@@ -72,7 +72,7 @@ fn run() -> Result<()> {
         )?;
     }
 
-    let mut chain = Blockchain::init::<BlockData>(path)?;
+    let mut chain = Blockchain::init(path)?;
 
     match matches.subcommand() {
         (START_SUBCOMMAND, Some(..)) => {
