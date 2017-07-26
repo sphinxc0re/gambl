@@ -19,7 +19,6 @@ extern crate clap;
 
 use gcore::errors::*;
 use gcore::blockchain::Blockchain;
-use gcore::block::Block;
 use clap::{App, AppSettings, SubCommand};
 use std::{env, fs};
 
@@ -45,7 +44,6 @@ fn main() {
 const GAMBLE_HOME_DIR: &str = ".gamble";
 const START_SUBCOMMAND: &str = "start";
 const HEAD_SUBCOMMAND: &str = "head";
-type BlockData = Vec<u8>;
 
 fn run() -> Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
@@ -91,7 +89,7 @@ fn run() -> Result<()> {
             ])?;
         }
         (HEAD_SUBCOMMAND, Some(..)) => {
-            let head: Block<BlockData> = chain.head_block()?;
+            let head = chain.head_block()?;
             println!("{:#?}", head);
         }
         _ => {}
