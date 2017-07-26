@@ -37,6 +37,7 @@ pub struct Block<T> {
 }
 
 impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Block<T> {
+    /// Generates the genesis block of the chain
     pub fn genesis() -> Block<T> {
         let mut gnew = Self::new(
             0,

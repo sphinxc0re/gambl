@@ -39,13 +39,12 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
         fs::create_dir_all(self.index_path_from_pointer(&block.hash))
             .chain_err(|| "unable to create directory structure")?;
 
-        block.to_file(
-            &self.path_buf_from_block_pointer(&block.hash),
-        )?;
+        block.to_file(&self.path_buf_from_block_hash(&block.hash))?;
 
         self.set_head(&block.hash)
     }
 
+    /// Creates a new block from the given data and adds it to the chain
     pub fn new_block(&mut self, data: T) -> Result<()> {
         let head: Block<T> = self.head_block()?;
 
@@ -56,6 +55,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
         Ok(())
     }
 
+    /// Checks whether the given block can be added to the  chain
     pub fn is_block_valid_next(&self, block: &Block<T>) -> Result<bool> {
         let head: Block<T> = self.head_block()?;
 
@@ -70,6 +70,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
         }
     }
 
+    /// Set the current head block given its hash
     fn set_head(&self, head: &Hash) -> Result<()> {
         util::serialize(&self.block_dir.join(HEAD_FILE_NAME), head)
     }
@@ -77,13 +78,15 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     /// Returns the head block
     pub fn head_block(&self) -> Result<Block<T>> {
         let ptr: String = util::deserialize(&self.block_dir.join(HEAD_FILE_NAME))?;
-        Block::from_file(&self.path_buf_from_block_pointer(&ptr))
+        Block::from_file(&self.path_buf_from_block_hash(&ptr))
     }
 
-    fn path_buf_from_block_pointer(&self, pointer: &Hash) -> PathBuf {
+    /// Returns the path of a block given its hash
+    fn path_buf_from_block_hash(&self, pointer: &Hash) -> PathBuf {
         self.index_path_from_pointer(pointer).join(pointer)
     }
 
+    /// Returns the index path of a block given its hash
     fn index_path_from_pointer(&self, pointer: &Hash) -> PathBuf {
         let chars: Vec<_> = pointer.clone().chars().collect();
 
@@ -96,6 +99,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
         self.block_dir.join(path_buf)
     }
 
+    /// Initializes a blockchain at the given directory
     pub fn init(block_dir: PathBuf) -> Result<Blockchain<T>> {
         let mut chain = Blockchain {
             block_dir: block_dir,
