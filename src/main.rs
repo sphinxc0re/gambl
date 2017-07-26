@@ -16,13 +16,13 @@
 
 extern crate gambl_core as gcore;
 extern crate clap;
-#[macro_use]
-extern crate error_chain;
 
 use gcore::errors::*;
 use gcore::blockchain::Blockchain;
+use gcore::block::Block;
 use clap::{App, AppSettings, SubCommand};
 use std::{env, fs};
+
 
 fn main() {
     if let Err(ref e) = run() {
@@ -42,7 +42,10 @@ fn main() {
     }
 }
 
+const GAMBLE_HOME_DIR: &str = ".gamble";
 const START_SUBCOMMAND: &str = "start";
+const HEAD_SUBCOMMAND: &str = "head";
+type BlockData = Vec<u8>;
 
 fn run() -> Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
@@ -52,23 +55,27 @@ fn run() -> Result<()> {
         .setting(AppSettings::ColorAlways)
         .about("The gambl blockchain toolkit")
         .subcommand(SubCommand::with_name(START_SUBCOMMAND).about(
-            "Start the gambl blockchain client",
+            "Start the gambl client",
+        ))
+        .subcommand(SubCommand::with_name(HEAD_SUBCOMMAND).about(
+            "Show the head block of the blockchain",
         ))
         .get_matches();
 
+    let path = env::home_dir()
+        .ok_or("failed to get home directory")?
+        .join(GAMBLE_HOME_DIR);
+
+    if !path.exists() {
+        fs::create_dir_all(&path).chain_err(
+            || "unable to create directory structure",
+        )?;
+    }
+
+    let mut chain = Blockchain::init::<BlockData>(path)?;
+
     match matches.subcommand() {
-        (START_SUBCOMMAND, Some(_)) => {
-            let path = match env::home_dir() {
-                Some(path) => path,
-                None => bail!("failed to get home directory"),
-            }.join(".gambl");
-
-            fs::create_dir_all(&path).chain_err(
-                || "unable to create directory structure",
-            )?;
-
-            let mut chain = Blockchain::init(path)?;
-
+        (START_SUBCOMMAND, Some(..)) => {
             chain.new_block(vec![
                 0x43,
                 0x43,
@@ -82,231 +89,10 @@ fn run() -> Result<()> {
                 0x43,
                 0x43,
             ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
-
-
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
+        }
+        (HEAD_SUBCOMMAND, Some(..)) => {
+            let head: Block<BlockData> = chain.head_block()?;
+            println!("{:#?}", head);
         }
         _ => {}
     }

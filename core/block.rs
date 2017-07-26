@@ -23,19 +23,28 @@ use chrono::TimeZone;
 use errors::*;
 use types::*;
 use util;
+use std::fmt::Debug;
+use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, PartialEq)]
-pub struct Block {
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+pub struct Block<T> {
     pub index: u64,
     pub previous_hash: Hash,
     pub timestamp: DateTime<Utc>,
-    pub data: Vec<u8>,
+    pub data: T,
     pub hash: Hash,
 }
 
-impl Block {
-    pub fn genesis() -> Block {
-        let mut gnew = Self::new(0, Hash::new(), Utc.timestamp(0, 0), Vec::new(), Hash::new());
+impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Block<T> {
+    pub fn genesis() -> Block<T> {
+        let mut gnew = Self::new(
+            0,
+            Hash::new(),
+            Utc.timestamp(0, 0),
+            Default::default(),
+            Hash::new(),
+        );
 
         gnew.hash = gnew.hash();
 
@@ -47,9 +56,9 @@ impl Block {
         index: u64,
         previous_hash: Hash,
         timestamp: DateTime<Utc>,
-        data: Vec<u8>,
+        data: T,
         hash: Hash,
-    ) -> Block {
+    ) -> Block<T> {
         Block {
             index,
             previous_hash,
@@ -60,22 +69,31 @@ impl Block {
     }
 
     /// Creates a Block with the current timestamp
-    pub fn create_now(index: u64, previous_hash: Hash, data: Vec<u8>) -> Block {
+    pub fn create_now(index: u64, previous_hash: Hash, data: T) -> Block<T> {
         let timestamp = Utc::now();
 
-        let hash = calculate_hash(&index, &previous_hash, &timestamp, &data);
+        let mut block = Block::new(index, previous_hash, timestamp, data, Hash::new());
 
-        Block::new(index, previous_hash, timestamp, data, hash)
+        block.hash = block.hash();
+
+        block
     }
 
     /// Generates the hash for the block
     fn hash(&self) -> Hash {
-        calculate_hash(
+        let mut hasher = Sha3::sha3_512();
+
+        let input_string = format!(
+            "{}{}{}{:?}",
             &self.index,
             &self.previous_hash,
             &self.timestamp,
-            &self.data,
-        )
+            &self.data
+        );
+
+        hasher.input_str(input_string.as_str());
+
+        hasher.result_str().to_owned()
     }
 
     /// Checks whether the internal integrity of the block is given
@@ -86,7 +104,7 @@ impl Block {
     }
 
     /// Loads a block from a file
-    pub fn from_file(file_name: &PathBuf) -> Result<Block> {
+    pub fn from_file(file_name: &PathBuf) -> Result<Block<T>> {
         util::deserialize(file_name)
     }
 
@@ -95,19 +113,4 @@ impl Block {
     pub fn to_file(&self, file_name: &PathBuf) -> Result<()> {
         util::serialize(file_name, self)
     }
-}
-
-fn calculate_hash(
-    index: &u64,
-    previous_hash: &Hash,
-    timestamp: &DateTime<Utc>,
-    data: &Vec<u8>,
-) -> Hash {
-    let mut hasher = Sha3::sha3_512();
-
-    let input_string = format!("{}{}{}{:?}", index, previous_hash, timestamp, data);
-
-    hasher.input_str(input_string.as_str());
-
-    hasher.result_str().to_owned()
 }
