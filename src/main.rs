@@ -22,6 +22,11 @@ use gcore::blockchain::Blockchain;
 use clap::{App, AppSettings, SubCommand};
 use std::{env, fs};
 
+const GAMBLE_HOME_DIR: &str = ".gambl";
+
+const START_SUBCOMMAND: &str = "start";
+const HEAD_SUBCOMMAND: &str = "head";
+const SEED_SUBCOMMAND: &str = "seed";
 
 fn main() {
     if let Err(ref e) = run() {
@@ -41,10 +46,6 @@ fn main() {
     }
 }
 
-const GAMBLE_HOME_DIR: &str = ".gamble";
-const START_SUBCOMMAND: &str = "start";
-const HEAD_SUBCOMMAND: &str = "head";
-
 fn run() -> Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
@@ -57,6 +58,9 @@ fn run() -> Result<()> {
         ))
         .subcommand(SubCommand::with_name(HEAD_SUBCOMMAND).about(
             "Show the head block of the blockchain",
+        ))
+        .subcommand(SubCommand::with_name(SEED_SUBCOMMAND).about(
+            "Populate the blockchain with random blocks",
         ))
         .get_matches();
 
@@ -74,23 +78,16 @@ fn run() -> Result<()> {
 
     match matches.subcommand() {
         (START_SUBCOMMAND, Some(..)) => {
-            chain.new_block(vec![
-                0x43,
-                0x43,
-                0xe3,
-                0x43,
-                0xb3,
-                0x43,
-                0x43,
-                0x13,
-                0x43,
-                0x43,
-                0x43,
-            ])?;
+            // TODO: Start the network client
         }
         (HEAD_SUBCOMMAND, Some(..)) => {
             let head = chain.head_block()?;
             println!("{:#?}", head);
+        }
+        (SEED_SUBCOMMAND, Some(..)) => {
+            for i in 0..64 {
+                chain.new_block(i)?;
+            }
         }
         _ => {}
     }

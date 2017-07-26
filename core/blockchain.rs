@@ -22,7 +22,7 @@ use util;
 use std::fs;
 use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
-use std::marker;
+use std::marker::PhantomData;
 
 const HEAD_FILE_NAME: &str = "HEAD";
 const BLOCK_DIR_NAME: &str = "blocks";
@@ -30,7 +30,7 @@ const BLOCK_DIR_NAME: &str = "blocks";
 /// A representation of the blockchain
 pub struct Blockchain<T> {
     block_dir: PathBuf,
-    data_type: marker::PhantomData<T>,
+    data_type: PhantomData<T>,
 }
 
 impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
@@ -103,7 +103,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     pub fn init(block_dir: PathBuf) -> Result<Blockchain<T>> {
         let mut chain = Blockchain {
             block_dir: block_dir,
-            data_type: marker::PhantomData::<T>,
+            data_type: PhantomData::<T>,
         };
 
         if !chain.block_dir.join(HEAD_FILE_NAME).exists() {

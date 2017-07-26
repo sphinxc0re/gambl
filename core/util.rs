@@ -34,7 +34,7 @@ where
 
     let mut de = Deserializer::new(&contents[..]);
 
-    Deserialize::deserialize(&mut de).chain_err(|| "failed to deserialize block")
+    Deserialize::deserialize(&mut de).chain_err(|| "failed to deserialize file")
 }
 
 pub fn serialize<T: Serialize>(file_path: &PathBuf, obj: &T) -> Result<()> {
