@@ -64,17 +64,17 @@ fn run() -> Result<()> {
         ))
         .get_matches();
 
-    let path = env::home_dir()
-        .ok_or("failed to get home directory")?
-        .join(GAMBLE_HOME_DIR);
+    let home_dir = env::home_dir().ok_or("failed to get home directory")?;
 
-    if !path.exists() {
-        fs::create_dir_all(&path).chain_err(
+    let gamble_base_dir = home_dir.join(GAMBLE_HOME_DIR);
+
+    if !gamble_base_dir.exists() {
+        fs::create_dir_all(&gamble_base_dir).chain_err(
             || "unable to create directory structure",
         )?;
     }
 
-    let mut chain = Blockchain::init(path)?;
+    let mut chain = Blockchain::init(gamble_base_dir)?;
 
     match matches.subcommand() {
         (START_SUBCOMMAND, Some(..)) => {
