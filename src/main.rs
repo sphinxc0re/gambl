@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate gambl_core as gcore;
 extern crate clap;
+extern crate dirs;
+extern crate gambl_core as common;
 
-use gcore::errors::*;
-use gcore::blockchain::Blockchain;
 use clap::{App, AppSettings, SubCommand};
-use std::{env, fs};
+use common::blockchain::Blockchain;
+use common::errors::*;
+use std::fs;
 
 const GAMBLE_HOME_DIR: &str = ".gambl";
 
@@ -53,25 +54,21 @@ fn run() -> Result<()> {
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .setting(AppSettings::ColorAlways)
         .about("The gambl blockchain toolkit")
-        .subcommand(SubCommand::with_name(START_SUBCOMMAND).about(
-            "Start the gambl client",
-        ))
-        .subcommand(SubCommand::with_name(HEAD_SUBCOMMAND).about(
-            "Show the head block of the blockchain",
-        ))
-        .subcommand(SubCommand::with_name(SEED_SUBCOMMAND).about(
-            "Populate the blockchain with random blocks",
-        ))
-        .get_matches();
+        .subcommand(SubCommand::with_name(START_SUBCOMMAND).about("Start the gambl client"))
+        .subcommand(
+            SubCommand::with_name(HEAD_SUBCOMMAND).about("Show the head block of the blockchain"),
+        ).subcommand(
+            SubCommand::with_name(SEED_SUBCOMMAND)
+                .about("Populate the blockchain with random blocks"),
+        ).get_matches();
 
-    let home_dir = env::home_dir().ok_or("failed to get home directory")?;
+    let home_dir = dirs::home_dir().ok_or("failed to get home directory")?;
 
     let gamble_base_dir = home_dir.join(GAMBLE_HOME_DIR);
 
     if !gamble_base_dir.exists() {
-        fs::create_dir_all(&gamble_base_dir).chain_err(
-            || "unable to create directory structure",
-        )?;
+        fs::create_dir_all(&gamble_base_dir)
+            .chain_err(|| "unable to create directory structure")?;
     }
 
     let mut chain = Blockchain::init(gamble_base_dir)?;
