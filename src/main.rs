@@ -14,51 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use clap::{App, AppSettings, SubCommand};
 use gambl_core::blockchain::Blockchain;
 use gambl_core::errors::*;
 use std::fs;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+enum Opt {
+    #[structopt(name = "start", about = "Start the gambl client")]
+    Start,
+    #[structopt(name = "head", about = "Show the head block of the blockchain")]
+    Head,
+    #[structopt(name = "seed", about = "Populate the blockchain with random blocks")]
+    Seed,
+}
 
 const GAMBL_HOME_DIR: &str = ".gambl";
 
-const START_SUBCOMMAND: &str = "start";
-const HEAD_SUBCOMMAND: &str = "head";
-const SEED_SUBCOMMAND: &str = "seed";
-
-fn main() {
-    if let Err(ref e) = run() {
-        println!("error: {}", e);
-
-        for e in e.iter().skip(1) {
-            println!("caused by: {}", e);
-        }
-
-        // The backtrace is not always generated. Try to run this example
-        // with `RUST_BACKTRACE=1`.
-        if let Some(backtrace) = e.backtrace() {
-            println!("backtrace: {:?}", backtrace);
-        }
-
-        ::std::process::exit(1);
-    }
-}
-
 fn run() -> Result<()> {
-    let matches = App::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .author("Julian Laubstein <contact@julianlaubstein.de>")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .setting(AppSettings::ColorAlways)
-        .about("The gambl blockchain toolkit")
-        .subcommand(SubCommand::with_name(START_SUBCOMMAND).about("Start the gambl client"))
-        .subcommand(
-            SubCommand::with_name(HEAD_SUBCOMMAND).about("Show the head block of the blockchain"),
-        )
-        .subcommand(
-            SubCommand::with_name(SEED_SUBCOMMAND)
-                .about("Populate the blockchain with random blocks"),
-        )
-        .get_matches();
+    let args = Opt::from_args();
 
     let home_dir = dirs::home_dir().ok_or("failed to get home directory")?;
 
@@ -71,21 +45,28 @@ fn run() -> Result<()> {
 
     let mut chain = Blockchain::init(gamble_base_dir)?;
 
-    match matches.subcommand() {
-        (START_SUBCOMMAND, Some(..)) => {
+    match args {
+        Opt::Start => {
             // TODO: Start the network client
         }
-        (HEAD_SUBCOMMAND, Some(..)) => {
+        Opt::Head => {
             let head = chain.head_block()?;
             println!("{:#?}", head);
         }
-        (SEED_SUBCOMMAND, Some(..)) => {
+        Opt::Seed => {
             for i in 0..64 {
                 chain.new_block(i)?;
             }
         }
-        _ => {}
     }
 
     Ok(())
+}
+
+fn main() {
+    if let Err(e) = run() {
+        println!("error: {}", e);
+
+        ::std::process::exit(1);
+    }
 }
