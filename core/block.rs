@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::errors::*;
+use crate::types::*;
+use crate::util;
 use chrono::offset::Utc;
-use std::path::PathBuf;
 use chrono::DateTime;
-use crypto::sha3::Sha3;
-use crypto::digest::Digest;
 use chrono::TimeZone;
-use errors::*;
-use types::*;
-use util;
+use crypto::digest::Digest;
+use crypto::sha3::Sha3;
+use serde::{Deserialize, Serialize};
+use serde_derive::{Deserialize, Serialize};
 use std::fmt::Debug;
-use serde::{Serialize, Deserialize};
-
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Block<T> {
@@ -86,10 +86,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Block<T> {
 
         let input_string = format!(
             "{}{}{}{:?}",
-            &self.index,
-            &self.previous_hash,
-            &self.timestamp,
-            &self.data
+            &self.index, &self.previous_hash, &self.timestamp, &self.data
         );
 
         hasher.input_str(input_string.as_str());
@@ -108,7 +105,6 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Block<T> {
     pub fn from_file(file_name: &PathBuf) -> Result<Block<T>> {
         util::deserialize(file_name)
     }
-
 
     /// Saves the block to a file
     pub fn to_file(&self, file_name: &PathBuf) -> Result<()> {

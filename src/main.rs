@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate clap;
-extern crate dirs;
-extern crate gambl_core as common;
-
 use clap::{App, AppSettings, SubCommand};
-use common::blockchain::Blockchain;
-use common::errors::*;
+use gambl_core::blockchain::Blockchain;
+use gambl_core::errors::*;
 use std::fs;
 
-const GAMBLE_HOME_DIR: &str = ".gambl";
+const GAMBL_HOME_DIR: &str = ".gambl";
 
 const START_SUBCOMMAND: &str = "start";
 const HEAD_SUBCOMMAND: &str = "head";
@@ -57,14 +53,16 @@ fn run() -> Result<()> {
         .subcommand(SubCommand::with_name(START_SUBCOMMAND).about("Start the gambl client"))
         .subcommand(
             SubCommand::with_name(HEAD_SUBCOMMAND).about("Show the head block of the blockchain"),
-        ).subcommand(
+        )
+        .subcommand(
             SubCommand::with_name(SEED_SUBCOMMAND)
                 .about("Populate the blockchain with random blocks"),
-        ).get_matches();
+        )
+        .get_matches();
 
     let home_dir = dirs::home_dir().ok_or("failed to get home directory")?;
 
-    let gamble_base_dir = home_dir.join(GAMBLE_HOME_DIR);
+    let gamble_base_dir = home_dir.join(GAMBL_HOME_DIR);
 
     if !gamble_base_dir.exists() {
         fs::create_dir_all(&gamble_base_dir)

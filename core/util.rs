@@ -17,7 +17,7 @@
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::{Read, Write};
-use errors::*;
+use crate::errors::*;
 use rmp_serde::{Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 

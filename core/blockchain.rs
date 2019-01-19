@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use block::Block;
-use std::path::PathBuf;
-use errors::*;
-use types::*;
-use util;
-use std::fs;
+use crate::block::Block;
+use crate::errors::*;
+use crate::types::*;
+use crate::util;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use serde::{Serialize, Deserialize};
+use std::fs;
 use std::marker::PhantomData;
+use std::path::PathBuf;
 
 const HEAD_FILE_NAME: &str = "HEAD";
 const BLOCK_DIR_NAME: &str = "blocks";
@@ -48,9 +48,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     pub fn new_block(&mut self, data: T) -> Result<()> {
         let head: Block<T> = self.head_block()?;
 
-        self.add_block(
-            Block::create_now(head.index + 1, head.hash, data),
-        )?;
+        self.add_block(Block::create_now(head.index + 1, head.hash, data))?;
 
         Ok(())
     }
@@ -59,15 +57,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     pub fn is_block_valid_next(&self, block: &Block<T>) -> Result<bool> {
         let head: Block<T> = self.head_block()?;
 
-        if !block.is_valid() {
-            Ok(false)
-        } else if block.index != head.index + 1 {
-            Ok(false)
-        } else if block.previous_hash != head.hash {
-            Ok(false)
-        } else {
-            Ok(true)
-        }
+        Ok(block.is_valid() && block.index == head.index + 1 && block.previous_hash != head.hash)
     }
 
     /// Set the current head block given its hash
