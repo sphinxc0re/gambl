@@ -16,7 +16,6 @@
 
 use crate::block::Block;
 use crate::errors::*;
-use crate::types::*;
 use crate::util;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -61,8 +60,8 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     }
 
     /// Set the current head block given its hash
-    fn set_head(&self, head: &Hash) -> Result<()> {
-        util::serialize(&self.block_dir.join(HEAD_FILE_NAME), head)
+    fn set_head(&self, head: &str) -> Result<()> {
+        util::serialize(&self.block_dir.join(HEAD_FILE_NAME), &head.to_owned())
     }
 
     /// Returns the head block
@@ -72,13 +71,13 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     }
 
     /// Returns the path of a block given its hash
-    fn path_buf_from_block_hash(&self, pointer: &Hash) -> PathBuf {
+    fn path_buf_from_block_hash(&self, pointer: &str) -> PathBuf {
         self.index_path_from_pointer(pointer).join(pointer)
     }
 
     /// Returns the index path of a block given its hash
-    fn index_path_from_pointer(&self, pointer: &Hash) -> PathBuf {
-        let chars: Vec<_> = pointer.clone().chars().collect();
+    fn index_path_from_pointer(&self, pointer: &str) -> PathBuf {
+        let chars: Vec<_> = pointer.chars().collect();
 
         let mut path_buf = PathBuf::from(BLOCK_DIR_NAME);
 
@@ -92,7 +91,7 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Blockchain<T> {
     /// Initializes a blockchain at the given directory
     pub fn init(block_dir: PathBuf) -> Result<Blockchain<T>> {
         let mut chain = Blockchain {
-            block_dir: block_dir,
+            block_dir,
             data_type: PhantomData::<T>,
         };
 

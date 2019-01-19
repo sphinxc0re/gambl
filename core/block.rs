@@ -20,8 +20,7 @@ use crate::util;
 use chrono::offset::Utc;
 use chrono::DateTime;
 use chrono::TimeZone;
-use crypto::digest::Digest;
-use crypto::sha3::Sha3;
+use crypto_hash::{hex_digest, Algorithm};
 use serde::{Deserialize, Serialize};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -82,16 +81,12 @@ impl<'a, T: Debug + Default + Serialize + Deserialize<'a>> Block<T> {
 
     /// Generates the hash for the block
     fn hash(&self) -> Hash {
-        let mut hasher = Sha3::sha3_512();
-
         let input_string = format!(
             "{}{}{}{:?}",
             &self.index, &self.previous_hash, &self.timestamp, &self.data
         );
 
-        hasher.input_str(input_string.as_str());
-
-        hasher.result_str().to_owned()
+        hex_digest(Algorithm::SHA256, input_string.as_bytes())
     }
 
     /// Checks whether the internal integrity of the block is given
