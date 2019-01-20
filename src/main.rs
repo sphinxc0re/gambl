@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use gambl_core::blockchain::Blockchain;
-use gambl_core::errors::*;
+use gambl_core::{errors::*, blockchain::Blockchain};
 use std::fs;
 use structopt::StructOpt;
 
